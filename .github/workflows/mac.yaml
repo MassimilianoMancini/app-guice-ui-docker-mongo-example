@@ -1,4 +1,4 @@
-name: Integration tests and Coveralls with build matrix on Mac
+name: Build on Mac
 
 on:
     push:

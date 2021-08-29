@@ -412,6 +412,7 @@
               <excludes>
                 <exclude>**/*Testcontainers*.java</exclude>
                 <exclude>**/ModelViewControllerIT.java</exclude>
+                <exclude>**/SchoolSwingAppE2E.java</exclude>
               </excludes>
             </configuration>
           </plugin>

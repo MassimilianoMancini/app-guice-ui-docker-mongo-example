@@ -1,4 +1,4 @@
-name: Integration tests and Coveralls with build matrix on Win
+name: Build on Win (testcontainers are excluded)
 
 on:
     push:
@@ -36,6 +36,6 @@ jobs:
         - name: Docker info
           run: docker info
         - name: Build with Maven
-          run: mvn -Pskip-testcontainers verify 
+          run: mvn -P skip-testcontainers verify 
           working-directory: school
       
