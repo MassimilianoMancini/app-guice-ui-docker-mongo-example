@@ -1,0 +1,40 @@
+name: Build on linux with Coveralls and SonarCloud
+
+on:
+    push:
+ 
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+          matrix:
+            java: [ 11, 15 ]
+        
+        name: Build with Java ${{ matrix.java }} on ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - name: Set up JDK ${{ matrix.java }}
+          uses: actions/setup-java@v1
+          with:
+            java-version: ${{ matrix.java }}
+        - name: Cache Maven packages
+          uses: actions/cache@v2
+          with:
+            path: |
+              ~/.m2
+              ~/.sonar/cache
+            key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml, **/*.yaml') }}
+            restore-keys: ${{ runner.os }}-m2-
+        - name: Build with Maven then push to Coveralls and SonarCloud
+          run: >
+            xvfb-run mvn verify sonar:sonar
+            -Pcoveralls 
+            -DrepoToken=$COVERALLS_REPO_TOKEN 
+            -Dsonar.projectKey=MassimilianoMancini_sonarqube-example
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.organization=massimilianomancini
+          working-directory: school
+          env: 
+            COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
