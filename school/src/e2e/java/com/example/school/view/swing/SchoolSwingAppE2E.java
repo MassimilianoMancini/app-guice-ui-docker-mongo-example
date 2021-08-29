@@ -14,21 +14,15 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.junit.runner.GUITestRunner;
 import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.bson.Document;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.testcontainers.containers.MongoDBContainer;
 
 import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.model.Filters;
 
 @RunWith(GUITestRunner.class)
 public class SchoolSwingAppE2E extends AssertJSwingJUnitTestCase {
-
-
-
-	@ClassRule
-	public static final MongoDBContainer mongo = new MongoDBContainer("mongo:5.0.2");
 
 	private static final String STUDENT_COLLECTION_NAME = "student";
 	private static final String SCHOOL_DB_NAME = "school";
@@ -36,22 +30,23 @@ public class SchoolSwingAppE2E extends AssertJSwingJUnitTestCase {
 	private static final String STUDENT_FIXTURE_1_NAME = "first student";
 	private static final String STUDENT_FIXTURE_2_ID = "2";
 	private static final String STUDENT_FIXTURE_2_NAME = "second student";
-
+	
+	private static int mongoPort = Integer.parseInt(System.getProperty("mongo.port", "27017"));
 	private MongoClient mongoClient;
+
 	private FrameFixture window;
 
 	@Override
 	protected void onSetUp() throws Exception {
-		String containerIpAddress = mongo.getContainerIpAddress();
-		Integer mappedPort = mongo.getFirstMappedPort();
-		mongoClient = new MongoClient(containerIpAddress, mappedPort);
+		mongoClient = new MongoClient(new ServerAddress("localhost", mongoPort));
+		mongoClient.getDatabase(SCHOOL_DB_NAME).drop();
 		// always start with an empty database
 		mongoClient.getDatabase(SCHOOL_DB_NAME).drop();
 		addTestStudentToDatabase(STUDENT_FIXTURE_1_ID, STUDENT_FIXTURE_1_NAME);
 		addTestStudentToDatabase(STUDENT_FIXTURE_2_ID, STUDENT_FIXTURE_2_NAME);
 		// start the swing application
 		application("com.example.school.app.swing.SchoolSwingApp")
-		.withArgs("--mongo-host=" + containerIpAddress, "--mongo-port=" + mappedPort,
+		.withArgs("--mongo-port=" + mongoPort,
 				"--db-name=" + SCHOOL_DB_NAME, "--db-collection=" + STUDENT_COLLECTION_NAME)
 		.start();
 		
@@ -125,6 +120,4 @@ public class SchoolSwingAppE2E extends AssertJSwingJUnitTestCase {
 			.getCollection(STUDENT_COLLECTION_NAME)
 			.deleteOne(Filters.eq("id", id));
 	}
-
-
 }
